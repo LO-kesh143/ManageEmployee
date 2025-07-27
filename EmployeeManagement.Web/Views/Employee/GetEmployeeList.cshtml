@@ -1,0 +1,197 @@
+﻿@model List<EmployeeViewModel>  
+@{  
+    var pageSize = ViewBag.PageSize ?? 10;  
+    var totalRecords = ViewBag.TotalRecords ?? 0;  
+    var totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);  
+}
+
+<style>
+    .table-hover tbody tr:hover {
+        background-color: #f1f1f1;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+</style>
+<div class="mt-4">
+    <div class="mb-3 d-flex gap-2">
+        <a asp-action="GetEmployeeList" class="btn btn-primary">Employee List</a>
+        <a asp-action="GetTitleSalaryList" class="btn btn-warning">Title List</a>
+        <a asp-action="AddEmployee" class="btn btn-success">Add Employee</a>
+    </div>
+
+    @* @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    } *@
+
+    <form asp-action="GetEmployeeList" method="get" class="mb-3">
+        <div class="row align-items-end">
+            <div class="col-md-4">
+                <label>Search</label>
+                <input type="text" name="searchString" value="@ViewBag.SearchName" placeholder="Search by name/title" class="form-control" />
+            </div>
+
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Search</button>
+            </div>
+
+            <div class="col-md-2">
+                <a asp-action="GetEmployeeList" class="btn btn-secondary w-100">Clear</a>
+            </div>
+        </div>
+    </form>
+
+    <!-- Scrollable Table -->
+    <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc;">
+        <table class="table table-bordered table-striped table-hover mb-0">
+            <thead style="position: sticky; top: 0; z-index: 1;" class="table-dark text-white">
+                <tr>
+                    <th>Employee ID</th>
+                    <th>Name</th>
+                    <th>Title</th>
+                    <th>Salary</th>
+                    <th>SSN</th>
+                    <th>Phone</th>
+                    <th>City</th>
+                    <th>State</th>
+                    <th>Join Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Count == 0)
+                {
+                    <tr>
+                        <td colspan="10" class="text-center">No employees found.</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var emp in Model)
+                    {
+                        var currentSalary = emp.Salaries
+                        .OrderByDescending(s => s.FromDate)
+                        .FirstOrDefault();
+
+                        <tr>
+                            <td>@emp.EmployeeId</td>
+                            <td>@emp.Name</td>
+                            <td>@(currentSalary?.Title ?? "N/A")</td>
+                            <td>@(currentSalary?.Salary.ToString("C") ?? "N/A")</td>
+                            <td>@emp.SSN</td>
+                            <td>@emp.Phone</td>
+                            <td>@emp.City</td>
+                            <td>@emp.State</td>
+                            <td>@emp.JoinDate?.ToString("dd/MM/yyyy")</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mt-4 gap-3">
+
+        <div class="flex-grow-1 d-flex align-items-center" style="min-width: 220px;">
+            @{
+                int currentPageSize = ViewBag.PageSize ?? 10;
+            }
+            <form asp-action="GetEmployeeList" method="get" class="d-flex align-items-center" style="gap: 0.5rem;">
+                <label for="pageSizeSelect" class="mb-0">Records Per Page:</label>
+                <select id="pageSizeSelect" name="pageSize" class="form-select form-select-sm w-auto"
+                        onchange="this.form.page.value='1'; this.form.submit();">
+                    @foreach (var size in new[] { 5, 10, 20, 30, 40, 50 })
+                    {
+                        <option value="@size" selected="@(size == currentPageSize ? "selected" : null)">@size</option>
+                    }
+                </select>
+
+                <input type="hidden" name="page" value="@ViewBag.PageNumber" />
+                <input type="hidden" name="searchString" value="@ViewBag.SearchName" />
+            </form>
+        </div>
+
+        <div class="text-center" style="flex: 0 0 200px; font-size: 1.1rem;">
+            <span>&laquo;&laquo; Page <strong>@ViewBag.CurrentPage</strong> of <strong>@ViewBag.TotalPages</strong> &raquo;&raquo;</span>
+        </div>
+
+        <div class="flex-grow-1 text-end" style="min-width: 300px;">
+            @{
+                int totalPageCount = totalPages;
+                int currentPage = ViewBag.PageNumber ?? 1;
+                int maxPageButtons = 5;
+                int startPage = Math.Max(1, currentPage - 2);
+                int endPage = Math.Min(totalPageCount, currentPage + 2);
+
+                if (endPage - startPage + 1 < maxPageButtons)
+                {
+                    if (startPage == 1)
+                        endPage = Math.Min(startPage + maxPageButtons - 1, totalPageCount);
+                    else if (endPage == totalPageCount)
+                        startPage = Math.Max(endPage - maxPageButtons + 1, 1);
+                }
+
+                int jumpSize = 3;
+            }
+
+            <nav>
+                <ul class="pagination justify-content-end mb-0 flex-wrap">
+                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                        <a class="page-link" asp-action="GetEmployeeList" asp-route-page="1"
+                           asp-route-pageSize="@pageSize" asp-route-searchString="@ViewBag.SearchName">First</a>
+                    </li>
+
+                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                        <a class="page-link" asp-action="GetEmployeeList" asp-route-page="@(currentPage - 1)"
+                           asp-route-pageSize="@pageSize" asp-route-searchString="@ViewBag.SearchName">Previous</a>
+                    </li>
+
+                    @if (startPage > 1)
+                    {
+                        var jumpBack = Math.Max(startPage - jumpSize, 1);
+                        <li class="page-item">
+                            <a class="page-link" asp-action="GetEmployeeList" asp-route-page="@jumpBack"
+                               asp-route-pageSize="@pageSize" asp-route-searchString="@ViewBag.SearchName">...</a>
+                        </li>
+                    }
+
+                    @for (int i = startPage; i <= endPage; i++)
+                    {
+                        <li class="page-item @(i == currentPage ? "active" : "")">
+                            <a class="page-link" asp-action="GetEmployeeList" asp-route-page="@i"
+                               asp-route-pageSize="@pageSize" asp-route-searchString="@ViewBag.SearchName">@i</a>
+                        </li>
+                    }
+
+                    @if (endPage < totalPageCount)
+                    {
+                        var jumpForward = Math.Min(endPage + 1, totalPageCount);
+                        <li class="page-item">
+                            <a class="page-link" asp-action="GetEmployeeList" asp-route-page="@jumpForward"
+                               asp-route-pageSize="@pageSize" asp-route-searchString="@ViewBag.SearchName">...</a>
+                        </li>
+                    }
+
+                    <li class="page-item @(currentPage == totalPageCount ? "disabled" : "")">
+                        <a class="page-link" asp-action="GetEmployeeList" asp-route-page="@(currentPage + 1)"
+                           asp-route-pageSize="@pageSize" asp-route-searchString="@ViewBag.SearchName">Next</a>
+                    </li>
+
+                    <li class="page-item @(currentPage == totalPageCount ? "disabled" : "")">
+                        <a class="page-link" asp-action="GetEmployeeList" asp-route-page="@totalPageCount"
+                           asp-route-pageSize="@pageSize" asp-route-searchString="@ViewBag.SearchName">Last</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>

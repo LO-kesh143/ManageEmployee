@@ -1,0 +1,17 @@
+﻿@model List<TitleSalaryViewModel>
+
+<table>
+    <thead>
+        <tr><th>Title</th><th>Min Salary</th><th>Max Salary</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Title</td>
+                <td>@item.MinSalary.ToString("C")</td>
+                <td>@item.MaxSalary.ToString("C")</td>
+            </tr>
+        }
+    </tbody>
+</table>

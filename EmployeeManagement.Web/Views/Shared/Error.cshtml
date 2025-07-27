@@ -1,0 +1,27 @@
+﻿@using EmployeeManagement.Web.ViewModels
+
+@model ErrorViewModel
+@{
+    ViewData["Title"] = Model?.ErrorMessage ?? "Error";
+    var isStatusCode = Model?.StatusCode > 0;
+}
+
+<div class="text-center mt-5">
+    @if (isStatusCode)
+    {
+        <h1 class="display-3 text-danger">@Model?.StatusCode</h1>
+        <h2 class="mb-4">@Model?.ErrorMessage</h2>
+    }
+    else
+    {
+        <h1 class="text-danger">Something went wrong.</h1>
+        <p class="lead">We’re working on it. Please try again later.</p>
+    }
+
+    @if (Model?.ShowRequestId == true)
+    {
+        <p><strong>Request ID:</strong> <code>@Model.RequestId</code></p>
+    }
+
+    <a class="btn btn-outline-primary mt-3" href="/">Back to Home</a>
+</div>

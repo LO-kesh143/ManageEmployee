@@ -1,0 +1,180 @@
+﻿@model EmployeeViewModel
+
+@{
+    ViewBag.Title = "Add Employee";
+}
+
+<h2 class="mb-4">Add Employee</h2>
+
+<div class="mb-3 d-flex gap-2">
+    <a asp-action="GetEmployeeList" class="btn btn-primary">Back to List</a>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<form asp-controller="Employee" asp-action="AddEmployee" method="post" class="row g-3">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="EmployeeId" />
+
+    <div class="col-md-6">
+        <label asp-for="Name" class="form-label">Name</label>
+        <input asp-for="Name" class="form-control" id="Name" maxlength="50" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="SSN" class="form-label">SSN</label>
+        <input asp-for="SSN" class="form-control" id="SSN" maxlength="11" />
+        <span asp-validation-for="SSN" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="Phone" class="form-label">Phone</label>
+        <input asp-for="Phone" class="form-control" maxlength="10" />
+        <span asp-validation-for="Phone" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="City" class="form-label">City</label>
+        <input asp-for="City" class="form-control" maxlength="50" />
+        <span asp-validation-for="City" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="State" class="form-label">State</label>
+        <input asp-for="State" class="form-control" maxlength="50" />
+        <span asp-validation-for="State" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="JoinDate" class="form-label">Join Date</label>
+        <input asp-for="JoinDate" type="date" class="form-control" />
+        <span asp-validation-for="JoinDate" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="DOB" class="form-label">Date of Birth</label>
+        <input asp-for="DOB" type="date" class="form-control" />
+        <span asp-validation-for="DOB" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="Address" class="form-label">Address</label>
+        <input asp-for="Address" class="form-control" maxlength="200" />
+        <span asp-validation-for="Address" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="Zip" class="form-label">Zip Code</label>
+        <input asp-for="Zip" class="form-control" maxlength="10" />
+        <span asp-validation-for="Zip" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="ExitDate" class="form-label">Exit Date</label>
+        <input asp-for="ExitDate" type="date" class="form-control" />
+        <span asp-validation-for="ExitDate" class="text-danger"></span>
+    </div>
+
+    <h5 class="mt-4">Salary Information</h5>
+
+    <div id="salaryContainer">
+        @for (int i = 0; i < Model.Salaries.Count; i++)
+        {
+            <div class="salary-group border rounded p-3 mb-3">
+                <input type="hidden" asp-for="@Model.Salaries[i].EmployeeSalaryId" />
+                <input type="hidden" asp-for="@Model.Salaries[i].EmployeeId" />
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <label asp-for="@Model.Salaries[i].Title" class="form-label">Title</label>
+                        <input asp-for="@Model.Salaries[i].Title" class="form-control" maxlength="100" />
+                        <span asp-validation-for="@Model.Salaries[i].Title" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="@Model.Salaries[i].Salary" class="form-label">Salary</label>
+                        <input asp-for="@Model.Salaries[i].Salary" type="number" class="form-control" maxlength="8" />
+                        <span asp-validation-for="@Model.Salaries[i].Salary" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="@Model.Salaries[i].FromDate" class="form-label">From Date</label>
+                        <input asp-for="@Model.Salaries[i].FromDate" type="date" class="form-control" />
+                        <span asp-validation-for="@Model.Salaries[i].FromDate" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="@Model.Salaries[i].ToDate" class="form-label">To Date</label>
+                        <input asp-for="@Model.Salaries[i].ToDate" type="date" class="form-control" />
+                        <span asp-validation-for="@Model.Salaries[i].ToDate" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div id="salaryData" data-salary-index="@Model.Salaries?.Count ?? 0"></div>
+
+    <button type="button" id="addSalary" class="btn btn-secondary mb-3">+ Add Salary</button>
+
+    <div class="col-12">
+        <button type="submit" class="btn btn-success">Add Employee</button>
+    </div>
+</form>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+    <script>
+        $(document).ready(function () {
+            // Apply input mask to SSN field
+            $("#SSN").inputmask("999-99-9999", {
+                "placeholder": "___-__-____"
+            });
+
+            let salaryIndex = parseInt(document.getElementById("salaryData").dataset.salaryIndex) || 0;
+
+            document.getElementById("addSalary").addEventListener("click", function () {
+                const container = document.getElementById("salaryContainer");
+
+                const salaryHtml = `
+                    <div class="salary-group border rounded p-3 mb-3">
+                        <div class="row">
+                            <input type="hidden" name="Salaries[${salaryIndex}].EmployeeSalaryId" value="0" />
+                            <input type="hidden" name="Salaries[${salaryIndex}].EmployeeId" value="@Model.EmployeeId" />
+
+                            <div class="col-md-6">
+                                <label class="form-label">Title</label>
+                                <input name="Salaries[${salaryIndex}].Title" class="form-control" />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Salary</label>
+                                <input name="Salaries[${salaryIndex}].Salary" type="number" class="form-control" />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">From Date</label>
+                                <input name="Salaries[${salaryIndex}].FromDate" type="date" class="form-control" />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">To Date</label>
+                                <input name="Salaries[${salaryIndex}].ToDate" type="date" class="form-control" />
+                            </div>
+                        </div>
+                    </div>`;
+
+                container.insertAdjacentHTML('beforeend', salaryHtml);
+
+                // Re-parse validation for the new inputs
+                $.validator.unobtrusive.parse(container);
+                salaryIndex++;
+            });
+        });
+    </script>
+}
